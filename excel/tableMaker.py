@@ -235,14 +235,19 @@ def tableMakerMain(book, bookRule):
                 'compareList': arr,
                 'sheetList': sheetItemList.copy()
             }
-    #受益人表并入被保人
-    beneficiaryAndInsured = beneficiaryPushInsured(diffDict)
-    #被保人表（+受益人表）并入险种表，并入过程扩充险种表
-    riskList = balaPushRisk(diffDict,beneficiaryAndInsured)
-    #险种表并入基本表，多险种处理成多条数据
-    completeList = riskMaker(riskList,sheetOrigList)
-    completeList = duplicateRemoval(completeList)
-    # resultsToWorksheet(workbook.add_sheet('天安',cell_overwrite_ok=True),completeList)
+    if len(diffDict)>0:
+        #复杂表有数据
+        #受益人表并入被保人
+        beneficiaryAndInsured = beneficiaryPushInsured(diffDict)
+        #被保人表（+受益人表）并入险种表，并入过程扩充险种表
+        riskList = balaPushRisk(diffDict,beneficiaryAndInsured)
+        #险种表并入基本表，多险种处理成多条数据
+        completeList = riskMaker(riskList,sheetOrigList)
+        completeList = duplicateRemoval(completeList)
+        # resultsToWorksheet(workbook.add_sheet('天安',cell_overwrite_ok=True),completeList)
+    else:
+        #复杂表无数据
+        completeList = sheetOrigList
 
     resultDict = {'天安':completeList} #excel结果
     return resultDict
