@@ -13,6 +13,9 @@ import os
 import requests
 import chardet
 import json
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
 # 表单
 def search_form(request):
     # return render(request, 'index.html')
@@ -43,9 +46,27 @@ def searchTest(request):
     bookrule = xlrd.open_workbook(file_contents=bookruleFile.read())#对照字段
     bookFile = request.FILES.get('fileDate')
     book = xlrd.open_workbook(file_contents=bookFile.read())#数据源头
+    saveExcel(bookrule)
     results = mainExcel(book,bookrule)
     print('results====>>>>',results)
     return HttpResponse(json.dumps(results))
+def saveExcel(fileData):
+    # 将xlrd格式的文件存储到本地
+    workbook = xlwt.Workbook(encoding='utf-8')
+    workbookWrite = workbook.add_sheet('字段对照表',cell_overwrite_ok=True)
+    for i in range(fileData.sheet_by_name('字段对照表').ncols):
+        for j in range(fileData.sheet_by_name('字段对照表').nrows):
+            workbookWrite.write(j,i,fileData.sheet_by_name('字段对照表').cell_value(j,i))
+    workbook.save('./myExcel/excel/投保数据导入模板.xlsx')
+def saveFile(fileData):
+    file_handle=open('excelLib/1.xls',mode='wb+')
+    file_handle.write(fileData.read())
+    file_handle.close()
+    # print('settings.MEDIA_ROOT=======>',settings.MEDIA_ROOT)
+    # print('fileData=======>',fileData)
+    # path = default_storage.save('excelLib/somename.xls', ContentFile(fileData.read()))
+    # tmp_file = os.path.join('', path)
+    # print('path=======>',path)
 def searchTestforA(request):
     #保存用
     response = HttpResponse(content_type='application/vnd.ms-excel') 

@@ -7,13 +7,27 @@ from django.conf import settings
 import os
 from collections import Counter 
 
-bookmodel = xlrd.open_workbook(os.path.join(settings.BASE_DIR, 'myExcel/excel/投保数据导入模板 (5).xlsx'))
-sheetmodel = bookmodel.sheet_by_name('导入模板')
-titlemodel = sheetmodel.row_values(0)
+bookmodel = xlrd.open_workbook(os.path.join(settings.BASE_DIR, 'myExcel/excel/投保数据导入模板.xlsx')) # 投保数据导入模板 (5).xlsx
+sheetmodel = bookmodel.sheet_by_name('字段对照表')
+titlemodel = [elem for elem in sheetmodel.row_values(2)[1:] if elem != '']
+sheetmodelNcols = len(titlemodel)
+print('sheetmodel==>',sheetmodel,titlemodel,len(titlemodel))
 
 def mainExcel(book,bookrule):
     #数据源头book;对照字段bookrule
+    global bookmodel
+    global sheetmodel
+    global titlemodel
+    global sheetmodelNcols
+    bookmodel = xlrd.open_workbook(os.path.join(settings.BASE_DIR, 'myExcel/excel/投保数据导入模板.xlsx')) # 投保数据导入模板 (5).xlsx
+    sheetmodel = bookmodel.sheet_by_name('字段对照表')
+    titlemodel = [elem for elem in sheetmodel.row_values(2)[1:] if elem != '']
+    sheetmodelNcols = len(titlemodel)
+
     sheetrule = bookrule.sheet_by_name('字段对照表')
+    sheetRuleCol = sheetrule.col_values(0)
+    jtrow = sheetrule.row_values(sheetRuleCol.index('江泰'))
+    print(sheetrule,jtrow,len(jtrow))
     #保存用
     workbook = xlwt.Workbook(encoding='utf-8')
 
@@ -114,11 +128,13 @@ def getListSheetKey(rd,listSheet,i,defValue):
     return str(ls)
 def resultsFactory(listSheet,ruleDict,sheetName):
     #拼凑数据，过滤数据
+    global titlemodel
+    global sheetmodelNcols
     reduceRowIndex = []#需要被删除数据的index
-    results = [['' for j in range(sheetmodel.ncols+1)] for i in range(len(listSheet)+1)]
+    results = [['' for j in range(sheetmodelNcols+1)] for i in range(len(listSheet)+1)]
     for i in range(len(listSheet)):
         lsItemList = []
-        for j in range(sheetmodel.ncols):
+        for j in range(sheetmodelNcols):
             ls = ''
             rd = ''
             tm = titlemodel[j]
@@ -152,7 +168,7 @@ def resultsFactory(listSheet,ruleDict,sheetName):
                         for indexlsy in lsi['lsy']:
                             results[lsi['lsx']][indexlsy] = lsi['lsExpect'][index]
                         break
-    for i in range(sheetmodel.ncols):
+    for i in range(sheetmodelNcols):
         results[0][i] = titlemodel[i]
     countRed = 0
     for i in reduceRowIndex:
@@ -167,15 +183,15 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
     lsExpect = None # 需要修改位置上的数据值
     #写入数据前，个性化修改数据
     if(sheetName=='中华'):
-        if(j==sheetmodel.row_values(0).index('供应商出单公司')):
+        if(j==titlemodel.index('供应商出单公司')):
             ls = '中华联合人寿保险股份有限公司'+ls+'分公司'
-        if(j==sheetmodel.row_values(0).index('江泰出单机构') and ls=='江泰保险经纪股份有限公司'):
+        if(j==titlemodel.index('江泰出单机构') and ls=='江泰保险经纪股份有限公司'):
             ls = ls+'北京分公司'
-        if(j==sheetmodel.row_values(0).index('保单状态')):
+        if(j==titlemodel.index('保单状态')):
             if(ls=='已终止'):
                 ls='终止'
                 lsx = i+1
-                lsy = [sheetmodel.row_values(0).index('退保类型'),sheetmodel.row_values(0).index('退保原因')]
+                lsy = [titlemodel.index('退保类型'),titlemodel.index('退保原因')]
                 lsName = '退保类型'
                 lsJudge = ['犹退终止','other']
                 lsExpect = ['犹豫期内退保','犹豫期外退保']
@@ -184,66 +200,66 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
                 reduceRowIndex.append(i+1)
             else:
                 ls='有效'
-        if(j==sheetmodel.row_values(0).index('退保类型')):
+        if(j==titlemodel.index('退保类型')):
             if '犹' not in ls:
                 ls = ''
-        if(j==sheetmodel.row_values(0).index('投保单号')):
+        if(j==titlemodel.index('投保单号')):
             if not ls:
                 ls='删除本条记录'
                 reduceRowIndex.append(i+1)
     elif(sheetName=='信美'):
-        if(j==sheetmodel.row_values(0).index('生效时间')):
+        if(j==titlemodel.index('生效时间')):
             ls = ls.split('生效')[0]
-        if(j==sheetmodel.row_values(0).index('退保时间')):
+        if(j==titlemodel.index('退保时间')):
             ls = ls.split('生效')[0]
-        if(j==sheetmodel.row_values(0).index('主附险标识')):
+        if(j==titlemodel.index('主附险标识')):
             ls = '主险'
-        if(j==sheetmodel.row_values(0).index('险种名称')):
+        if(j==titlemodel.index('险种名称')):
             if('-' in ls):
                 ls = ls.split('-')[0]
-        if(j==sheetmodel.row_values(0).index('保单状态')):
+        if(j==titlemodel.index('保单状态')):
             if(ls=='有效'):
                 lsx = i+1
-                lsy = [sheetmodel.row_values(0).index('退保时间')]
+                lsy = [titlemodel.index('退保时间')]
                 lsName = '退保时间'
                 lsJudge = ['other']
                 lsExpect = ['']
     elif(sheetName=='天安'):
-        if(j==sheetmodel.row_values(0).index('供应商出单公司')):
+        if(j==titlemodel.index('供应商出单公司')):
             if ls=='北京营业总部':
                 ls = '天安人寿保险股份有限公司北京分公司'
             else:
                 ls = '天安人寿保险股份有限公司'+ls
-        if(j==sheetmodel.row_values(0).index('主附险标识')):
+        if(j==titlemodel.index('主附险标识')):
             if ls=='是':
                 ls = '主险'
             elif ls=='否':
                 ls = '附加险'
-        if(j==sheetmodel.row_values(0).index('第二受益人顺序')):
+        if(j==titlemodel.index('第二受益人顺序')):
             if ls=='1':
                 ls = '2'
-        if(j==sheetmodel.row_values(0).index('第三受益人顺序')):
+        if(j==titlemodel.index('第三受益人顺序')):
             if ls=='1':
                 ls = '3'
     elif(sheetName=='君康'):
-        if(j==sheetmodel.row_values(0).index('供应商出单公司')):
+        if(j==titlemodel.index('供应商出单公司')):
             ls = '君康人寿保险股份有限公司'+ls+"分公司"
-        if(j==sheetmodel.row_values(0).index('江泰出单机构')):
+        if(j==titlemodel.index('江泰出单机构')):
             ls = ls.split('营业本部')[0].split('本部')[0]
-        if(j==sheetmodel.row_values(0).index('退保类型')):
+        if(j==titlemodel.index('退保类型')):
             if ls=='犹豫期退保':
                 ls = '犹豫期内退保'
             if ls=='退保':
                 ls = '犹豫期外退保'
-        if(j==sheetmodel.row_values(0).index('主附险标识')):
+        if(j==titlemodel.index('主附险标识')):
             if ls=='Y':
                 ls = '主险'
             if ls=='N':
                 ls = '附加险'
-        if(j==sheetmodel.row_values(0).index('险种名称')):
+        if(j==titlemodel.index('险种名称')):
             # 去修改其他位置的数据
             lsx = i+1
-            lsy = [sheetmodel.row_values(0).index('保险期间')]
+            lsy = [titlemodel.index('保险期间')]
             lsName = '保险期间'
             lsJudge = ['other']
             if ls.find('医疗')!=-1:
@@ -251,17 +267,17 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
             else:
                 lsExpect = ['保至105周岁']
     #所有保险公司字段的特殊处理
-    if j == sheetmodel.row_values(0).index('江泰出单机构'):
+    if j == titlemodel.index('江泰出单机构'):
         if '有限公司' in ls:
             ls = ls.split('有限公司')[1]
-    if(j==sheetmodel.row_values(0).index('保单状态')):
+    if(j==titlemodel.index('保单状态')):
         if ls=='生效' or ls=='待生效':
             ls = '有效'
-    if(j==sheetmodel.row_values(0).index('险种名称')):
+    if(j==titlemodel.index('险种名称')):
         if ls.find('(')!=-1:
             ls = ls.replace('(','（')
             ls = ls.replace(')','）')
-    if j == sheetmodel.row_values(0).index('保险期间'):
+    if j == titlemodel.index('保险期间'):
         lsNum = getNumberFromString(ls)
         if len(lsNum)>0:
             if lsNum != '105':
@@ -276,20 +292,20 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
                 ls = '保至105周岁'
         if ls == '终身':
             ls = '保至105周岁'
-    if j == sheetmodel.row_values(0).index('缴费方式'):
+    if j == titlemodel.index('缴费方式'):
         if ls=='趸交' or ls=='趸缴':
             ls = '一次交清'
         if ls=='按年交':
             ls = '年交'
-    if j == sheetmodel.row_values(0).index('缴费期间'):
+    if j == titlemodel.index('缴费期间'):
         if ls=='0':
             ls = '1'
         if '年' in ls:
             ls = ls.split('年')[0]
-    if j == sheetmodel.row_values(0).index('与投保人关系'):
+    if j == titlemodel.index('与投保人关系'):
         if ls=='夫妻':
             ls = '配偶'
-    if j == sheetmodel.row_values(0).index('投保人证件类型') or j == sheetmodel.row_values(0).index('被保险人证件类型'):
+    if j == titlemodel.index('投保人证件类型') or j == titlemodel.index('被保险人证件类型'):
         if ls=='居民身份证':
             ls = '身份证'
         if ls=='户口簿':
