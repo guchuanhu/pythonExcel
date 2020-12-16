@@ -48,7 +48,6 @@ def searchTest(request):
     book = xlrd.open_workbook(file_contents=bookFile.read())#数据源头
     saveExcel(bookrule)
     results = mainExcel(book,bookrule)
-    print('results====>>>>',results)
     return HttpResponse(json.dumps(results))
 def saveExcel(fileData):
     # 将xlrd格式的文件存储到本地

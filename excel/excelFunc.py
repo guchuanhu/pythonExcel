@@ -11,8 +11,6 @@ bookmodel = xlrd.open_workbook(os.path.join(settings.BASE_DIR, 'myExcel/excel/�
 sheetmodel = bookmodel.sheet_by_name('字段对照表')
 titlemodel = [elem for elem in sheetmodel.row_values(2)[1:] if elem != '']
 sheetmodelNcols = len(titlemodel)
-print('sheetmodel==>',sheetmodel,titlemodel,len(titlemodel))
-
 def mainExcel(book,bookrule):
     #数据源头book;对照字段bookrule
     global bookmodel
@@ -27,7 +25,6 @@ def mainExcel(book,bookrule):
     sheetrule = bookrule.sheet_by_name('字段对照表')
     sheetRuleCol = sheetrule.col_values(0)
     jtrow = sheetrule.row_values(sheetRuleCol.index('江泰'))
-    print(sheetrule,jtrow,len(jtrow))
     #保存用
     workbook = xlwt.Workbook(encoding='utf-8')
 
@@ -154,8 +151,6 @@ def resultsFactory(listSheet,ruleDict,sheetName):
                 ls = rd['value']
             lsItem = lsChange(ls,j,sheetName,i,reduceRowIndex,results)
             ls = lsItem['ls']
-            if i==6 and j==15:
-                print(results[i+1])
             results[i+1][j] = ls
             if lsItem['lsx']!=None:
                 #记录需要处理的数据
@@ -312,6 +307,9 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
             ls = '户口本'
         if ls=='出生医学证明':
             ls = '出生证'
+    if j == titlemodel.index('投保时间') or j == titlemodel.index('交费时间') or j == titlemodel.index('承保时间') or j == titlemodel.index('生效时间') or j == titlemodel.index('保单签发时间') or j == titlemodel.index('回执时间') or j == titlemodel.index('回访时间') or j == titlemodel.index('退保时间') or j == titlemodel.index('终止时间'):
+        if ls:
+            ls = ls.replace('/','-').split(' ')[0]
             
     return {
         'ls': ls,
