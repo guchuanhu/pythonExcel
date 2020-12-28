@@ -261,6 +261,47 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
                 lsExpect = ['1年']
             else:
                 lsExpect = ['保至105周岁']
+    elif(sheetName=='弘康'):
+        if(j==titlemodel.index('供应商出单公司')):
+            ls = '弘康人寿保险股份有限公司'
+        if(j==titlemodel.index('保单状态')):
+            if ls == '承保':
+                ls = '有效'
+            if ls == '退保终止' or ls == '犹退终止':
+                ls = '终止'
+        if(j==titlemodel.index('退保类型')):
+            if ls == '犹豫期退保':
+                ls = '犹豫期内退保'
+            if ls == '退保':
+                ls = '犹豫期外退保'
+        if(j==titlemodel.index('与投保人关系') or j==titlemodel.index('第一受益人与被保人关系')):
+            if ls == '丈夫' or ls == '妻子':
+                ls = '配偶'
+            if ls == '儿子' or ls == '女儿':
+                ls = '子女'
+            if ls == '孙女' or ls == '孙子' or ls == '外孙' or ls == '外孙女':
+                ls = '其他'
+        if(j==titlemodel.index('受益类型')):
+            if ls == '身故受益人':
+                ls = '指定'
+            if ls == 'null':
+                ls = '法定'
+    elif(sheetName=='工银'):
+        if(j==titlemodel.index('保单状态')):
+            if ls == '承保未生效':
+                ls = '有效'
+        if(j==titlemodel.index('缴费方式')):
+            if ls == '1':
+                ls = '一次交清'
+            else:
+                ls = '年交'
+    elif(sheetName=='泰康'):
+        if(j==titlemodel.index('供应商出单公司')):
+            ls = '泰康人寿保险有限责任公司' + ls
+        if(j==titlemodel.index('保单状态')):
+            if ls == '建议书':
+                ls = '有效'
+                
     #所有保险公司字段的特殊处理
     if j == titlemodel.index('江泰出单机构'):
         if '有限公司' in ls:
@@ -310,6 +351,8 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
     if j == titlemodel.index('投保时间') or j == titlemodel.index('交费时间') or j == titlemodel.index('承保时间') or j == titlemodel.index('生效时间') or j == titlemodel.index('保单签发时间') or j == titlemodel.index('回执时间') or j == titlemodel.index('回访时间') or j == titlemodel.index('退保时间') or j == titlemodel.index('终止时间'):
         if ls:
             ls = ls.replace('/','-').split(' ')[0]
+    if ls == 'null':
+        ls = ''
             
     return {
         'ls': ls,
