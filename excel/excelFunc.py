@@ -301,6 +301,9 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
         if(j==titlemodel.index('保单状态')):
             if ls == '建议书':
                 ls = '有效'
+        if j == titlemodel.index('投保时间') or j == titlemodel.index('交费时间') or j == titlemodel.index('承保时间') or j == titlemodel.index('生效时间') or j == titlemodel.index('保单签发时间') or j == titlemodel.index('回执时间') or j == titlemodel.index('回访时间') or j == titlemodel.index('退保时间') or j == titlemodel.index('终止时间'):
+            if ls:
+                ls = ls[:4] + '-' + ls[4:6] + '-' + ls[6:8]
                 
     #所有保险公司字段的特殊处理
     if j == titlemodel.index('江泰出单机构'):
