@@ -1,6 +1,7 @@
 import xlrd
 
 import xlwt
+import time
 from datetime import datetime
 from xlrd import xldate_as_tuple
 from django.conf import settings
@@ -27,6 +28,22 @@ taikangCompany = {
 'W'	:'泰康人寿保险有限责任公司甘肃分公司',
 'D'	:'泰康人寿保险有限责任公司河南分公司',
 'C'	:'泰康人寿保险有限责任公司山东分公司'
+}
+
+
+gongyinCompany = {
+'御享人生重大疾病保险'	:['工银安盛人寿御享人生重大疾病保险','保至105周岁'],
+'附加安心意外伤害医疗保险（B款）'	:['工银安盛人寿附加安心意外伤害医疗保险（B款）','1年'],
+'御享颐生重大疾病保险'	:['工银安盛人寿御享颐生重大疾病保险','保至105周岁'],
+'附加综合意外伤害保险'	:['附加综合意外伤害保险-工银安盛','1年'],
+'康至优选医疗保险'	:['工银安盛人寿康至优选医疗保险','1年'],
+'附加豁免保险费重大疾病保险'	:['附加豁免保险费重大疾病保险-工银安盛','保至105周岁'],
+'e+保医疗保险-转保版'	:['工银安盛人寿e+保医疗保险','1年'],
+'e+保医疗保险'	:['工银安盛人寿e+保医疗保险','1年'],
+'附加安心住院费用医疗保险'	:['工银安盛人寿附加安心住院费用医疗保险','1年'],
+'质子/重离子医疗补偿金'	:['质子/重离子医疗补偿金',''],
+'附加豁免保险费定期寿险（2016）'	:['附加豁免保险费定期寿险（2016）','1年'],
+'康至优选医疗保险-转保版'	:['工银安盛人寿康至优选医疗保险','1年'],
 }
 bookmodel = xlrd.open_workbook(os.path.join(settings.BASE_DIR, 'myExcel/excel/投保数据导入模板.xlsx')) # 投保数据导入模板 (5).xlsx
 sheetmodel = bookmodel.sheet_by_name('字段对照表')
@@ -149,6 +166,7 @@ def resultsFactory(listSheet,ruleDict,sheetName):
     global titlemodel
     global sheetmodelNcols
     reduceRowIndex = []#需要被删除数据的index
+    gongyinObj = {'reduceRowIndex':[],'saveArr':[]}#需要被删除数据的index
     results = [['' for j in range(sheetmodelNcols+1)] for i in range(len(listSheet)+1)]
     for i in range(len(listSheet)):
         lsItemList = []
@@ -170,7 +188,7 @@ def resultsFactory(listSheet,ruleDict,sheetName):
                 ls = getListSheetKey(rd['value'],listSheet,i,rd['defValue'])
             else:
                 ls = rd['value']
-            lsItem = lsChange(ls,j,sheetName,i,reduceRowIndex,results)
+            lsItem = lsChange(ls,j,sheetName,i,reduceRowIndex,results,gongyinObj)
             ls = lsItem['ls']
             results[i+1][j] = ls
             if lsItem['lsx']!=None:
@@ -186,12 +204,24 @@ def resultsFactory(listSheet,ruleDict,sheetName):
                         break
     for i in range(sheetmodelNcols):
         results[0][i] = titlemodel[i]
+    resNumArr = [item[titlemodel.index('投保单号')] for item in results][1:]
+    saveNumArr = [item[titlemodel.index('投保单号')] for item in gongyinObj['saveArr']]
+    baofeiIndex = titlemodel.index('保费')
+    policyIndex = titlemodel.index('投保单号')
+    riskIndex = titlemodel.index('险种名称')
+    for indexNum in range(len(gongyinObj['reduceRowIndex'])):
+        currentIndex = resNumArr.index(results[gongyinObj['reduceRowIndex'][indexNum]][policyIndex])#等待加保费的index
+        results[currentIndex][baofeiIndex] = str(float(results[currentIndex][baofeiIndex]) + float(gongyinObj['saveArr'][indexNum][baofeiIndex]))
+    countRed = 0
+    for i in gongyinObj['reduceRowIndex']:
+        del results[i-countRed]
+        countRed += 1
     countRed = 0
     for i in reduceRowIndex:
         del results[i-countRed]
         countRed += 1
     return results
-def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
+def lsChange(ls,j,sheetName,i,reduceRowIndex,results,gongyinObj):
     lsx = None # 第几条数据
     lsy = None # 数据第几个值
     lsName = None # 数据title
@@ -322,30 +352,24 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
             else:
                 ls = '年交'
         if(j==titlemodel.index('险种名称')):
-            if ls=='御享人生重大疾病保险':
-                ls = '工银安盛人寿御享人生重大疾病保险'
-            if ls=='附加安心意外伤害医疗保险（B款）':
-                ls = '工银安盛人寿附加安心意外伤害医疗保险（B款）'
-            if ls=='御享颐生重大疾病保险':
-                ls = '工银安盛人寿御享颐生重大疾病保险'
-            if ls=='附加综合意外伤害保险':
-                ls = '附加综合意外伤害保险-工银安盛'
-            if ls=='康至优选医疗保险':
-                ls = '工银安盛人寿康至优选医疗保险'
-            if ls=='附加豁免保险费重大疾病保险':
-                ls = '附加豁免保险费重大疾病保险-工银安盛'
-            if ls=='e+保医疗保险-转保版':
-                ls = '工银安盛人寿e+保医疗保险'
-            if ls=='e+保医疗保险':
-                ls = '工银安盛人寿e+保医疗保险'
-            if ls=='附加安心住院费用医疗保险':
-                ls = '工银安盛人寿附加安心住院费用医疗保险'
-            if ls=='质子/重离子医疗补偿金':
-                ls = '质子/重离子医疗补偿金'
-            if ls=='附加豁免保险费定期寿险（2016）':
-                ls = '附加豁免保险费定期寿险（2016）'
-            if ls=='康至优选医疗保险-转保版':
-                ls = '工银安盛人寿康至优选医疗保险'
+            if ls in gongyinCompany:
+                print(ls in gongyinCompany,ls)
+                print(gongyinCompany[ls])
+                if gongyinCompany[ls][0]=='质子/重离子医疗补偿金':
+                    gongyinObj['reduceRowIndex'].append(i+1)
+                    gongyinObj['saveArr'].append(results[i+1])
+                ls = gongyinCompany[ls][0]
+        if(j==titlemodel.index('保险期间')):
+            if gongyinCompany[ls]:
+                ls = gongyinCompany[ls][1]
+        if(j==titlemodel.index('投保时间')):
+            # 时间减一天
+            if ls:
+                timeStruct = time.strptime(ls, "%Y-%m-%d") 
+                timeStamp = int(time.mktime(timeStruct)) - 60*60*24
+                localTime = time.localtime(timeStamp) 
+                strTime = time.strftime("%Y-%m-%d", localTime) 
+                ls = strTime
     elif(sheetName=='泰康'):
         if(j==titlemodel.index('供应商出单公司')):
             ls = taikangCompany[ls]
@@ -358,6 +382,11 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
         if(j==titlemodel.index('险种名称')):
             if ls=='岁月有约养老年金保险产品计划':
                 ls = '泰康岁月有约养老年金保险（分红型）'
+        if(j==titlemodel.index('缴费方式')):
+            if ls=='1' or ls=='1年缴清' or '缴至' in ls:
+                ls = '一次交清'
+            if '年缴清' in ls:
+                ls = '年交'
     #所有保险公司字段的特殊处理
     if j == titlemodel.index('江泰出单机构'):
         if '有限公司' in ls:
