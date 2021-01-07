@@ -6,7 +6,28 @@ from xlrd import xldate_as_tuple
 from django.conf import settings
 import os
 from collections import Counter 
-
+taikangCompany = {
+'R'	:'泰康人寿保险有限责任公司山西分公司',
+'5'	:'泰康人寿保险有限责任公司四川分公司',
+'F'	:'泰康人寿保险有限责任公司重庆分公司',
+'T'	:'泰康人寿保险有限责任公司江西分公司',
+'1'	:'泰康人寿保险有限责任公司北京分公司',
+'O'	:'泰康人寿保险有限责任公司黑龙江分公司',
+'I'	:'泰康人寿保险有限责任公司深圳分公司',
+'8'	:'泰康人寿保险有限责任公司海南分公司',
+'X'	:'泰康人寿保险有限责任公司宁夏分公司',
+'4'	:'泰康人寿保险有限责任公司上海分公司',
+'A'	:'泰康人寿保险有限责任公司江苏分公司',
+'B'	:'泰康人寿保险有限责任公司浙江分公司',
+'N'	:'泰康人寿保险有限责任公司河北分公司',
+'6'	:'泰康人寿保险有限责任公司辽宁分公司',
+'H'	:'泰康人寿保险有限责任公司湖南分公司',
+'E'	:'泰康人寿保险有限责任公司天津分公司',
+'2'	:'泰康人寿保险有限责任公司湖北分公司',
+'W'	:'泰康人寿保险有限责任公司甘肃分公司',
+'D'	:'泰康人寿保险有限责任公司河南分公司',
+'C'	:'泰康人寿保险有限责任公司山东分公司'
+}
 bookmodel = xlrd.open_workbook(os.path.join(settings.BASE_DIR, 'myExcel/excel/投保数据导入模板.xlsx')) # 投保数据导入模板 (5).xlsx
 sheetmodel = bookmodel.sheet_by_name('字段对照表')
 titlemodel = [elem for elem in sheetmodel.row_values(2)[1:] if elem != '']
@@ -71,7 +92,7 @@ def listSheetMaker(sheet,titleDict,sheetName):
                 if sheet.cell(i,j).ctype==3:
                     #日期处理
                     date = datetime(*xldate_as_tuple(sheet.row_values(i)[j], 0))
-                    listSheet[i-1][titleList[j]] = date.strftime('%Y-%d-%m %H:%M:%S')
+                    listSheet[i-1][titleList[j]] = date.strftime('%Y-%m-%d')
                 elif sheet.cell(i,j).ctype==2 and int(sheet.cell_value(i,j))==sheet.cell_value(i,j):
                     #数字类型，且整型等于原有数据，直接转化为整型
                     listSheet[i-1][titleList[j]] = int(sheet.row_values(i)[j])
@@ -236,6 +257,11 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
         if(j==titlemodel.index('第三受益人顺序')):
             if ls=='1':
                 ls = '3'
+        if(j==titlemodel.index('险种名称')):
+            if ls=='天安人寿附加住院费用医疗保险':
+                ls = '附加住院费用医疗保险-天安'
+            if ls=='天安人寿附加住院津贴医疗保险':
+                ls = '附加住院津贴医疗保险-天安'
     elif(sheetName=='君康'):
         if(j==titlemodel.index('供应商出单公司')):
             ls = '君康人寿保险股份有限公司'+ls+"分公司"
@@ -295,16 +321,43 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
                 ls = '一次交清'
             else:
                 ls = '年交'
+        if(j==titlemodel.index('险种名称')):
+            if ls=='御享人生重大疾病保险':
+                ls = '工银安盛人寿御享人生重大疾病保险'
+            if ls=='附加安心意外伤害医疗保险（B款）':
+                ls = '工银安盛人寿附加安心意外伤害医疗保险（B款）'
+            if ls=='御享颐生重大疾病保险':
+                ls = '工银安盛人寿御享颐生重大疾病保险'
+            if ls=='附加综合意外伤害保险':
+                ls = '附加综合意外伤害保险-工银安盛'
+            if ls=='康至优选医疗保险':
+                ls = '工银安盛人寿康至优选医疗保险'
+            if ls=='附加豁免保险费重大疾病保险':
+                ls = '附加豁免保险费重大疾病保险-工银安盛'
+            if ls=='e+保医疗保险-转保版':
+                ls = '工银安盛人寿e+保医疗保险'
+            if ls=='e+保医疗保险':
+                ls = '工银安盛人寿e+保医疗保险'
+            if ls=='附加安心住院费用医疗保险':
+                ls = '工银安盛人寿附加安心住院费用医疗保险'
+            if ls=='质子/重离子医疗补偿金':
+                ls = '质子/重离子医疗补偿金'
+            if ls=='附加豁免保险费定期寿险（2016）':
+                ls = '附加豁免保险费定期寿险（2016）'
+            if ls=='康至优选医疗保险-转保版':
+                ls = '工银安盛人寿康至优选医疗保险'
     elif(sheetName=='泰康'):
         if(j==titlemodel.index('供应商出单公司')):
-            ls = '泰康人寿保险有限责任公司' + ls
+            ls = taikangCompany[ls]
         if(j==titlemodel.index('保单状态')):
-            if ls == '建议书':
-                ls = '有效'
+            if ls != '有效':
+                ls = '终止'
         if j == titlemodel.index('投保时间') or j == titlemodel.index('交费时间') or j == titlemodel.index('承保时间') or j == titlemodel.index('生效时间') or j == titlemodel.index('保单签发时间') or j == titlemodel.index('回执时间') or j == titlemodel.index('回访时间') or j == titlemodel.index('退保时间') or j == titlemodel.index('终止时间'):
             if ls:
                 ls = ls[:4] + '-' + ls[4:6] + '-' + ls[6:8]
-                
+        if(j==titlemodel.index('险种名称')):
+            if ls=='岁月有约养老年金保险产品计划':
+                ls = '泰康岁月有约养老年金保险（分红型）'
     #所有保险公司字段的特殊处理
     if j == titlemodel.index('江泰出单机构'):
         if '有限公司' in ls:
@@ -321,7 +374,7 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
         if len(lsNum)>0:
             if lsNum != '105':
                 if int(lsNum)>30:
-                    if int(lsNum)==999:
+                    if int(lsNum)>=999:
                         ls = '保至105周岁'
                     else:
                         ls = '保至'+lsNum+'周岁'
@@ -337,7 +390,7 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
         if ls=='按年交':
             ls = '年交'
     if j == titlemodel.index('缴费期间'):
-        if ls=='0':
+        if ls=='0' or ls=='1' or '周岁' in ls:
             ls = '1'
         if '年' in ls:
             ls = ls.split('年')[0]
@@ -356,7 +409,9 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results):
             ls = ls.replace('/','-').split(' ')[0]
     if ls == 'null':
         ls = ''
-            
+    if j == titlemodel.index('被保险人性别'):
+        if '性' in ls:
+            ls = ls.split(' ')[0]
     return {
         'ls': ls,
         'lsx': lsx,
