@@ -217,9 +217,10 @@ def tableMakerMain(book, bookRule):
             sheetItemList = sheetToList(sheetItem,sheetName,filterBookList)
         arr = compareListMaker(arr,sheetOrig.col_values(1),sheetItem.col_values(1))
         whichFunc = isComplex(arr)
-        if whichFunc == 0:
+        #受益人表必须是复杂表
+        if whichFunc == 0 and sheetName != '受益人表':
             # 简单表直接数据合并
-            print(arr,len(arr),sheetName,'简单',len(sheetItemList))
+            # print(arr,len(arr),sheetName,'简单',len(sheetItemList))
             if len(sheetOrigList) == len(sheetItemList):
                 # 基础表数据与简单表数据个数一样
                 sheetOrigList = listMerge(sheetOrigList, sheetItemList)
@@ -228,7 +229,7 @@ def tableMakerMain(book, bookRule):
                 sheetOrigList = lackListMerge(sheetOrigList, sheetItemList, arr)
             elif len(sheetOrigList) < len(sheetItemList):
                 print('此情况还未出现')
-        elif whichFunc==1:
+        elif whichFunc==1 or sheetName == '受益人表':
             # 复杂表记录数据后，在之后流程中转门处理
             # print(arr,len(arr),sheetName,'复杂')
             diffDict[sheetName]={
