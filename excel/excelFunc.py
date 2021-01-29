@@ -360,7 +360,7 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results,gongyinObj):
                     gongyinObj['saveArr'].append(results[i+1])
                 ls = gongyinCompany[ls][0]
         if(j==titlemodel.index('保险期间')):
-            if gongyinCompany[ls]:
+            if ls in gongyinCompany:
                 ls = gongyinCompany[ls][1]
         if(j==titlemodel.index('投保时间')):
             # 时间减一天
