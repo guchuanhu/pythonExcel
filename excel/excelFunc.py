@@ -362,6 +362,10 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results,gongyinObj):
         if(j==titlemodel.index('保险期间')):
             if ls in gongyinCompany:
                 ls = gongyinCompany[ls][1]
+            if ls == '御享颐生重大疾病保险（尊享版）':
+                ls = '保至105周岁'
+            if ls == '附加住院津贴医疗保险':
+                ls = '1年'
         if(j==titlemodel.index('投保时间')):
             # 时间减一天
             if ls:
@@ -387,6 +391,9 @@ def lsChange(ls,j,sheetName,i,reduceRowIndex,results,gongyinObj):
                 ls = '一次交清'
             if '年缴清' in ls:
                 ls = '年交'
+    elif(sheetName=='信泰'):
+        if(j==titlemodel.index('供应商出单公司')):
+            ls = ls.replace('信泰保险','信泰人寿保险股份有限公司')
     #所有保险公司字段的特殊处理
     if j == titlemodel.index('江泰出单机构'):
         if '有限公司' in ls:

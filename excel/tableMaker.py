@@ -70,6 +70,7 @@ def mergeElementForList(origList,mergeWhich):
 def beneficiaryPushInsured(diffDict):
     #受益人表并入被保人
     #受益人表
+    print(diffDict)
     diffDictSheet = mergeElementForList(diffDict['受益人表']['sheetList'],['险种代码', '被保人编码'])
     #被保人表
     insuredSheet = mergeElementForList(diffDict['被保人表']['sheetList'],['险种代码', '被保人编码'])
@@ -216,9 +217,9 @@ def tableMakerMain(book, bookRule):
             sheetItem = book.sheet_by_name(sheetName)#变化表
             sheetItemList = sheetToList(sheetItem,sheetName,filterBookList)
         arr = compareListMaker(arr,sheetOrig.col_values(1),sheetItem.col_values(1))
-        whichFunc = isComplex(arr)
+        whichFunc = isComplex(arr) # 1复杂
         #受益人表必须是复杂表
-        if whichFunc == 0 and sheetName != '受益人表':
+        if whichFunc == 0 and sheetName != '受益人表' and sheetName != '被保人表' and sheetName != '险种表':
             # 简单表直接数据合并
             # print(arr,len(arr),sheetName,'简单',len(sheetItemList))
             if len(sheetOrigList) == len(sheetItemList):
@@ -229,13 +230,15 @@ def tableMakerMain(book, bookRule):
                 sheetOrigList = lackListMerge(sheetOrigList, sheetItemList, arr)
             elif len(sheetOrigList) < len(sheetItemList):
                 print('此情况还未出现')
-        elif whichFunc==1 or sheetName == '受益人表':
+        elif whichFunc==1 or sheetName == '受益人表' or sheetName == '被保人表' or sheetName == '险种表':
             # 复杂表记录数据后，在之后流程中转门处理
-            # print(arr,len(arr),sheetName,'复杂')
+            print(arr,len(arr),sheetName,'复杂')
             diffDict[sheetName]={
                 'compareList': arr,
                 'sheetList': sheetItemList.copy()
             }
+        print(sheetName,whichFunc)
+    print(diffDict)
     if len(diffDict)>0:
         #复杂表有数据
         #受益人表并入被保人
